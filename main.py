@@ -18,6 +18,7 @@ response = requests.get(main_url, headers=headerstxt)
 
 # Check if the request was successful (status code 200)
 if response.status_code == 200:
+    print('rank page scraping started')
     # Parse the HTML content of the page
     soup = BeautifulSoup(response.text, 'html.parser')
     # Find the first table on the main page
@@ -27,7 +28,7 @@ if response.status_code == 200:
     # Check if the main table was found
     if main_table:
         # Iterate through the rows of the table
-        for row in main_table.find('tbody').find_all('tr'):
+        for index, row in enumerate(main_table.find('tbody').find_all('tr')):
             # Extract data from the columns
             columns = row.find_all('td')
             country_name = columns[0].text.strip()
@@ -44,6 +45,7 @@ if response.status_code == 200:
 
             # Check if the request was successful
             if country_page_response.status_code == 200:
+                print('country page scraping started')
                 # Parse the HTML content of the country page
                 country_page_soup = BeautifulSoup(
                     country_page_response.text, 'html.parser')
@@ -55,11 +57,8 @@ if response.status_code == 200:
 
                 country_table = country_tables[1]
                 # Check if the first header (th) in the table is "Year"
-                headcolums = country_table.find('thead').find_all('th')
-                ######################################################### need to fix it
-                print(headcolums and headcolums[0].text.strip() == "Year")
+                headcolums = country_table.find_all('thead')[1].find_all('th')
                 if headcolums and headcolums[0].text.strip() == "Year":
-                    print('okay')
                     # Extract data from the table
                     data = []
                     for country_row in country_table.find('tbody').find_all('tr'):
@@ -79,9 +78,10 @@ if response.status_code == 200:
 
                     # Add the country's data to the main DataFrame
                     df = pd.concat([df, country_df])
-
                 # Close the country page response
                 country_page_response.close()
+                print(f'{index}.{country_name}: rank page scraping ended')
+
             else:
                 print(
                     f"Failed to retrieve data from the country page: {country_page_url}")
