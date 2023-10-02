@@ -22,8 +22,7 @@ if response.status_code == 200:
     # Parse the HTML content of the page
     soup = BeautifulSoup(response.text, 'html.parser')
     # Find the first table on the main page
-    main_table = soup.find(
-        'table')
+    main_table = soup.find('table')
 
     # Check if the main table was found
     if main_table:
@@ -67,17 +66,20 @@ if response.status_code == 200:
                         co2_emission = country_columns[1].text.strip()
                         data.append((year, co2_emission))
 
-                    # Create a DataFrame from the data
-                    country_df = pd.DataFrame(data, columns=['Year', country_name])
+                    # Create a DataFrame from the data with 'Year' and 'Country' columns
+                    country_df = pd.DataFrame(data, columns=['Year', 'CO2 Emission'])
 
-                    # Set the 'Year' column as the index
-                    country_df.set_index('Year', inplace=True)
+                    # Add the 'Country' column with the country name
+                    country_df['Country'] = country_name
 
-                    # Transpose the DataFrame so that years become columns
-                    country_df = country_df.transpose()
+                    # Pivot the DataFrame so that years become columns
+                    country_df = country_df.pivot(index='Country', columns='Year', values='CO2 Emission')
 
-                    # Add the country's data to the main DataFrame
-                    df = pd.concat([df, country_df])
+                    # Reset the index
+                    country_df.reset_index(inplace=True)
+
+                    # Append the country DataFrame to the main DataFrame
+                    df = pd.concat([df, country_df], ignore_index=True)
                 # Close the country page response
                 country_page_response.close()
                 print(f'{index}.{country_name}: rank page scraping ended')
